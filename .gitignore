@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+backend/.venv/
+frontend/node_modules/
+frontend/dist/
+e2e-shots/
+data/processed/*
+!data/processed/.gitkeep

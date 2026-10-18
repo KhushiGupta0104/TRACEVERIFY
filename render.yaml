@@ -1,0 +1,34 @@
+# Render Blueprint — TRACEVERIFY API + PostgreSQL.
+# In Render: New → Blueprint → select this repository.
+databases:
+  - name: traceverify-db
+    plan: free
+    databaseName: traceverify
+    user: traceverify
+
+services:
+  - type: web
+    name: traceverify-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # Schema + rule registry, then the demo dataset (idempotent: re-runs insert nothing), then the API.
+    startCommand: >-
+      python -m scripts.init_db &&
+      python -m scripts.ingest --evidence-dir ../data/synthetic --redteam ../data/raw/redteam_seed_subset.txt.gz &&
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DATABASE_URL
+        fromDatabase:
+          name: traceverify-db
+          property: connectionString
+      # Set after the Vercel site exists, e.g. https://traceverify.vercel.app
+      - key: CORS_ORIGINS
+        sync: false
+      # Also allow Vercel preview deployments of this project (adjust the project name if different)
+      - key: CORS_ORIGIN_REGEX
+        value: ^https://traceverify(-[a-z0-9-]+)?\.vercel\.app$
