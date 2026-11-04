@@ -119,19 +119,19 @@ try {
   check(await page.getByRole('heading', { name: /Investigation #\d+/ }).isVisible(), 'results heading');
   check(/Starting event\s+U620@DOM1\s+C17693 → C1003/.test(await page.locator('[data-testid="start-line"]').innerText()),
     'starting event shown under the title');
-  check(/Longest path from start/.test(await page.locator('[data-testid="metrics"]').innerText()), 'clarified path metric');
+  check(/Longest chain from start/.test(await page.locator('[data-testid="metrics"]').innerText()), 'clarified path metric');
 
   // default selection
   await page.waitForSelector('[data-testid="why-panel"]');
   check(/Process start/.test(await page.locator('[data-testid="details-title"]').innerText()), 'details panel pre-selects top evidence');
   const why = await page.locator('[data-testid="why-panel"]').innerText();
-  check(/Included as evidence/.test(why) && /Related to/.test(why) && /Connected by/.test(why) && /Rule: /.test(why) && /Why it was included/.test(why),
+  check(/Included as evidence/.test(why) && /Related to/.test(why) && /What they have in common/.test(why) && /Attack pattern: /.test(why) && /Why it was included/.test(why),
     'details answer: related to, connected by (entities + rule), why included');
   check(/^0\.9\d\d$/.test(await page.locator('[data-testid="final-score"]').innerText()), 'final score shown');
   check(/started powershell\.exe on C1003/.test(await page.locator('[data-testid="what-happened"]').innerText()),
     'plain-English "what happened"');
   check(/well above the threshold/.test(await page.locator('[data-testid="strength"]').innerText()), 'strength relative to threshold');
-  check(/It shares .*fits the rule/.test(await page.locator('[data-testid="short-reason"]').innerText()), 'short explanation shown');
+  check(/It shares .*fits the attack pattern/.test(await page.locator('[data-testid="short-reason"]').innerText()), 'short explanation shown');
   check(!(await page.locator('[data-testid="score-breakdown"]').isVisible()), 'score breakdown collapsed by default');
   check((await page.locator('.g-node.selected').count()) === 1, 'default selection highlighted in graph');
   await shot('02-results-1366');
@@ -144,7 +144,7 @@ try {
   const sb = await seedNode.boundingBox();
   check(Math.abs(pb.x - sb.x) < 2 && pb.y < sb.y, 'pre-start event is in the start column, above the seed');
   check(await page.getByText('Link (earlier → later)').isVisible(), 'legend explains arrow direction');
-  check(await page.getByText('Links show correlation, not cause.').isVisible(), 'legend states correlation ≠ cause');
+  check(await page.getByText('A link means “probably related”, not “caused by”.').isVisible(), 'legend states correlation ≠ cause');
 
   // graph within container
   const wrap = await page.locator('.graph-wrap').boundingBox();
@@ -184,7 +184,7 @@ try {
   check((await rows('rejected')) > 0, 'excluded events shown');
   await page.locator('[data-testid="timeline-item"][data-status="rejected"]').first().click();
   const exWhy = await page.locator('[data-testid="why-panel"]').innerText();
-  check(/Excluded/.test(exWhy) && /Why it was excluded/.test(exWhy) && /held down mainly by a low/.test(exWhy) && /not accepted/.test(exWhy), 'excluded event explains why (weakest component named)');
+  check(/Left out/.test(exWhy) && /Why it was excluded/.test(exWhy) && /held down mainly by a low/.test(exWhy) && /not accepted/.test(exWhy), 'excluded event explains why (weakest component named)');
   await shot('03-timeline-1366');
   await page.locator('[data-testid="show-rejected"]').uncheck();
 
@@ -192,11 +192,11 @@ try {
   await tab('graph');
   await page.locator('[data-testid="graph-edge"]').first().dispatchEvent('click');
   await page.waitForSelector('[data-testid="relationship-caption"]');
-  await page.locator('.disclosure summary', { hasText: 'Score breakdown' }).click();
+  await page.locator('.disclosure summary', { hasText: 'score breakdown' }).click();
   check(await page.locator('[data-testid="score-breakdown"]').isVisible(), 'score breakdown expands');
   await page.waitForSelector('[data-testid="rule-condition"]');
   check(/condition:/.test(await page.locator('[data-testid="rule-condition"]').innerText()), 'rule condition from rules API');
-  await page.locator('.disclosure summary', { hasText: 'Raw event record' }).click();
+  await page.locator('.disclosure summary', { hasText: 'Original log record' }).click();
   await page.waitForSelector('.raw');
   check(await page.locator('.raw').isVisible(), 'raw record expands');
   await page.locator('[data-testid="reset-view"]').click();

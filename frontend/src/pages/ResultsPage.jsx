@@ -4,6 +4,7 @@ import Timeline from '../components/Timeline.jsx';
 import EvidenceGraph from '../components/EvidenceGraph.jsx';
 import EvidenceDetails from '../components/EvidenceDetails.jsx';
 import RerunDrawer from '../components/RerunDrawer.jsx';
+import StorySummary from '../components/StorySummary.jsx';
 import { ErrorState, InfoTip, Loading, SourceBadge } from '../components/common.jsx';
 import { readableTime, windowLabel } from '../utils/format.js';
 
@@ -140,31 +141,34 @@ export default function ResultsPage({ investigationId, initialEventId, onInvesti
         <div className="stats" data-testid="metrics">
           <div className="stat">
             <span className="stat-value">{m.accepted_events}</span>
-            <span className="stat-label">Related events</span>
+            <span className="stat-label">Connected activities</span>
           </div>
           <div className="stat">
             <span className="stat-value">{m.accepted_relationships}</span>
-            <span className="stat-label">Evidence links</span>
+            <span className="stat-label">Links found</span>
           </div>
           <div className="stat">
             <span className="stat-value">{m.candidates_evaluated} <span className="of">of {m.events_in_window}</span></span>
-            <span className="stat-label">Events checked in window</span>
+            <span className="stat-label">Activities checked nearby</span>
           </div>
           <div className="stat">
             <span className="stat-value">{m.max_path_depth} {m.max_path_depth === 1 ? 'link' : 'links'}</span>
             <span className="stat-label">
-              Longest path from start
-              <InfoTip id="path-tip">The most links between the starting event and any related event.</InfoTip>
+              Longest chain from start
+              <InfoTip id="path-tip">The most steps between the starting event and any connected activity.</InfoTip>
             </span>
           </div>
           <span className="divider" />
           <div className="stat">
             <span className="stat-value mono">{p.threshold.toFixed(2)}</span>
-            <span className="stat-label">Threshold</span>
+            <span className="stat-label">
+              Strictness
+              <InfoTip id="thr-tip">The minimum score (0 to 1) an activity needs to count as connected.</InfoTip>
+            </span>
           </div>
           <div className="stat">
             <span className="stat-value small">{windowLabel(p.window_before, p.window_after)}</span>
-            <span className="stat-label">Time window</span>
+            <span className="stat-label">Searched</span>
           </div>
           {change && (
             <div className="change-note" data-testid="change-note" role="status">
@@ -175,12 +179,20 @@ export default function ResultsPage({ investigationId, initialEventId, onInvesti
         </div>
       </div>
 
+      <StorySummary
+        timeline={data.timeline}
+        threshold={p.threshold}
+        windowText={windowLabel(p.window_before, p.window_after)}
+        selectedId={selectedEventId}
+        onSelect={selectEvent}
+      />
+
       <div className="results-grid">
         <section className="card view-card">
           <div className="card-head">
             <div className="segmented tabs" role="tablist" aria-label="Evidence view">
               <button role="tab" aria-selected={view === 'graph'} aria-pressed={view === 'graph'} onClick={() => setView('graph')} data-testid="tab-graph">
-                Graph
+                Connection map
               </button>
               <button role="tab" aria-selected={view === 'timeline'} aria-pressed={view === 'timeline'} onClick={() => setView('timeline')} data-testid="tab-timeline">
                 Timeline
@@ -192,18 +204,18 @@ export default function ResultsPage({ investigationId, initialEventId, onInvesti
                 <button className="btn small" onClick={() => setFitRequest((n) => n + 1)} data-testid="reset-view">Reset view</button>
                 <label className="switch">
                   <input type="checkbox" checked={showSupporting} onChange={(e) => setShowSupporting(e.target.checked)} data-testid="show-supporting" />
-                  Supporting links
+                  Extra supporting links
                 </label>
                 </>
               ) : (
                 <div className="segmented" role="group" aria-label="Sort timeline">
                   <button aria-pressed={sortBy === 'time'} onClick={() => setSortBy('time')} data-testid="sort-time">By time</button>
-                  <button aria-pressed={sortBy === 'score'} onClick={() => setSortBy('score')} data-testid="sort-score">By score</button>
+                  <button aria-pressed={sortBy === 'score'} onClick={() => setSortBy('score')} data-testid="sort-score">Strongest first</button>
                 </div>
               )}
               <label className="switch">
                 <input type="checkbox" checked={showExcluded} onChange={(e) => setShowExcluded(e.target.checked)} data-testid="show-rejected" />
-                Excluded ({excludedCount})
+                Show weak matches ({excludedCount})
               </label>
             </div>
           </div>
@@ -211,7 +223,7 @@ export default function ResultsPage({ investigationId, initialEventId, onInvesti
             {view === 'graph' ? (
               m.accepted_events === 0 && !showExcluded ? (
                 <div className="state" style={{ height: '100%' }}>
-                  No events reached the threshold.
+                  Nothing was connected strongly enough. Try a lower strictness or a wider search.
                   <button className="btn" onClick={() => setDrawer(true)}>Adjust settings</button>
                 </div>
               ) : (
@@ -228,13 +240,13 @@ export default function ResultsPage({ investigationId, initialEventId, onInvesti
                 />
               )
             ) : (
-              <Timeline items={timelineItems} selectedId={selectedEventId} onSelect={selectEvent} />
+              <Timeline items={timelineItems} selectedId={selectedEventId} onSelect={selectEvent} threshold={p.threshold} />
             )}
           </div>
         </section>
 
         <aside className="card details-card">
-          <div className="card-head"><h2>Evidence details</h2></div>
+          <div className="card-head"><h2>Why is this connected?</h2></div>
           <div className="card-body">
             <EvidenceDetails selection={selection} timeline={data.timeline} relationships={data.relationships}
               params={p} onSelectEvent={selectEvent} />

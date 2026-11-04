@@ -34,9 +34,9 @@ export function paramsValid(p) {
   );
 }
 
-function NumberInput({ label, value, onChange, min, max, testId }) {
+function NumberInput({ label, hint, value, onChange, min, max, testId }) {
   return (
-    <label className="small-label">
+    <label className="small-label" title={hint}>
       {label}
       <input
         className={`input mono ${inRange(value, min, max) ? '' : 'invalid'}`}
@@ -68,7 +68,7 @@ export default function SettingsForm({ params, onChange, idPrefix = 'settings' }
   return (
     <div className="form">
       <div className="field">
-        <label className="field-label" htmlFor={`${idPrefix}-window`}>Time window</label>
+        <label className="field-label" htmlFor={`${idPrefix}-window`}>How far to search around the event</label>
         <select
           id={`${idPrefix}-window`}
           className="select"
@@ -85,6 +85,7 @@ export default function SettingsForm({ params, onChange, idPrefix = 'settings' }
           ))}
           <option value="custom">Custom…</option>
         </select>
+        <p className="hint">Activity outside this time range is ignored.</p>
         {custom && (
           <div className="two">
             <NumberInput label="Seconds before" value={params.window_before} min={0} max={86400}
@@ -97,7 +98,7 @@ export default function SettingsForm({ params, onChange, idPrefix = 'settings' }
 
       <div className="field">
         <label className="field-label" htmlFor={`${idPrefix}-threshold`}>
-          Correlation threshold <span className="value">{Number(params.threshold).toFixed(2)}</span>
+          How strict to be <span className="value">{Number(params.threshold).toFixed(2)}</span>
         </label>
         <input
           id={`${idPrefix}-threshold`}
@@ -109,20 +110,22 @@ export default function SettingsForm({ params, onChange, idPrefix = 'settings' }
           data-testid="threshold"
           onChange={(e) => set({ threshold: Number(e.target.value) })}
         />
-        <div className="range-ends"><span>More evidence</span><span>Stricter</span></div>
+        <div className="range-ends"><span>Show more (looser)</span><span>Only strong matches</span></div>
+        <p className="hint">Each nearby activity gets a score from 0 to 1. Only activities scoring at least this much count as connected.</p>
       </div>
 
       <details className="advanced" data-testid="advanced">
-        <summary><Chevron />Advanced settings</summary>
+        <summary><Chevron />Advanced settings <span className="subtle">(optional, defaults work well)</span></summary>
         <div className="advanced-body">
           <div className="field">
             <div className="field-label">
-              Score weights <span className={`weights-sum ${sumOk ? 'subtle' : 'bad'}`}>total {sum.toFixed(2)}</span>
+              What matters most when scoring <span className={`weights-sum ${sumOk ? 'subtle' : 'bad'}`}>total {sum.toFixed(2)}</span>
             </div>
+            <p className="hint">The score mixes three clues. These sliders set how much each clue counts and must add up to 1.</p>
             {[
-              ['entity', 'Shared entities'],
-              ['temporal', 'Time proximity'],
-              ['rule', 'Rule match'],
+              ['entity', 'Same user or computer'],
+              ['temporal', 'Close in time'],
+              ['rule', 'Fits a known attack pattern'],
             ].map(([k, label]) => (
               <label className="small-label" key={k}>
                 <span style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -143,7 +146,7 @@ export default function SettingsForm({ params, onChange, idPrefix = 'settings' }
           </div>
 
           <div className="field">
-            <div className="field-label">Evidence sources</div>
+            <div className="field-label">Which kinds of activity to look at</div>
             <div className="chips">
               {['auth', 'proc', 'dns', 'flow'].map((s) => (
                 <button key={s} type="button" className="chip" aria-pressed={params.source_types.includes(s)}
@@ -157,11 +160,11 @@ export default function SettingsForm({ params, onChange, idPrefix = 'settings' }
           </div>
 
           <div className="three">
-            <NumberInput label="Time decay (s)" value={params.temporal_decay} min={1} max={86400}
+            <NumberInput label="Time fade (s)" hint="How quickly 'close in time' drops off. Smaller means only very close events score well." value={params.temporal_decay} min={1} max={86400}
               onChange={(v) => set({ temporal_decay: v })} />
-            <NumberInput label="Search rounds" value={params.max_hops} min={1} max={6}
+            <NumberInput label="Max chain length" hint="How many steps away from the starting event to keep following links." value={params.max_hops} min={1} max={6}
               onChange={(v) => set({ max_hops: v })} />
-            <NumberInput label="Max events" value={params.max_nodes} min={1} max={500}
+            <NumberInput label="Max activities" hint="Stop after this many connected activities." value={params.max_nodes} min={1} max={500}
               onChange={(v) => set({ max_nodes: v })} />
           </div>
         </div>

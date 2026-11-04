@@ -16,8 +16,8 @@ function GraphLegend({ showRejected, showSupporting }) {
       <div className="legend">
         <span><span className="line" />Link (earlier → later)</span>
         {showSupporting && <span><span className="line dashed" />Supporting</span>}
-        {showRejected && <span><span className="line dashed" style={{ borderColor: 'var(--danger)' }} />Excluded</span>}
-        <span className="subtle">Links show correlation, not cause.</span>
+        {showRejected && <span><span className="line dashed" style={{ borderColor: 'var(--danger)' }} />Weak (left out)</span>}
+        <span className="subtle">A link means “probably related”, not “caused by”.</span>
       </div>
     </div>
   );

@@ -1,14 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { SourceBadge } from './common.jsx';
 import { clockOnly, score, signedDelta } from '../utils/format.js';
+import { strengthWord } from '../utils/plainEnglish.js';
 
 function linkLabel(t) {
   if (t.is_seed) return <span className="pill danger">Start</span>;
-  if (t.status === 'rejected') return <span className="pill">Excluded</span>;
-  return t.hop === 1 ? <span className="pill accent">Direct</span> : <span className="pill violet">{t.hop} links</span>;
+  if (t.status === 'rejected') return <span className="pill">Left out</span>;
+  return t.hop === 1 ? <span className="pill accent">Direct</span> : <span className="pill violet">{t.hop} steps away</span>;
 }
 
-export default function Timeline({ items, selectedId, onSelect }) {
+export default function Timeline({ items, selectedId, onSelect, threshold = 0.6 }) {
   const scrollRef = useRef(null);
 
   // Keep the selected row visible inside the timeline's own scroll area.
@@ -27,10 +28,10 @@ export default function Timeline({ items, selectedId, onSelect }) {
     <div className="timeline-scroll" ref={scrollRef}>
       <div className="tl-head" aria-hidden="true">
         <span>Time</span>
-        <span>Source</span>
-        <span>Event</span>
-        <span>Link</span>
-        <span className="tl-head-score">Score</span>
+        <span>Type</span>
+        <span>What happened</span>
+        <span>Distance</span>
+        <span className="tl-head-score">Strength</span>
       </div>
       <ol className="timeline" data-testid="timeline">
         {items.map((t) => {
@@ -65,7 +66,7 @@ export default function Timeline({ items, selectedId, onSelect }) {
                     <div className={`scorebar ${t.status === 'rejected' ? 'rejected' : ''}`} aria-hidden="true">
                       <span style={{ width: `${Math.max(0, Math.min(1, t.score ?? 0)) * 100}%` }} />
                     </div>
-                    <span className="num">{score(t.score, 2)}</span>
+                    <span className="num" title={strengthWord(t.score, threshold, t.status === 'rejected').text}>{score(t.score, 2)}</span>
                   </>
                 )}
               </div>
