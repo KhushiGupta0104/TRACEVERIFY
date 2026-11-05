@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { SOURCE_META, normalizeWeights, weightsSum } from '../utils/format.js';
 import { Chevron } from './common.jsx';
 
+// The correlation threshold is not here: it is a fixed, validated system setting applied by the backend.
 export const DEFAULT_PARAMS = {
   window_before: 300,
   window_after: 1800,
-  threshold: 0.6,
   weights: { entity: 0.4, temporal: 0.3, rule: 0.3 },
   temporal_decay: 300,
   max_hops: 3,
@@ -94,24 +94,6 @@ export default function SettingsForm({ params, onChange, idPrefix = 'settings' }
               testId="window-after" onChange={(v) => set({ window_after: v })} />
           </div>
         )}
-      </div>
-
-      <div className="field">
-        <label className="field-label" htmlFor={`${idPrefix}-threshold`}>
-          How strict to be <span className="value">{Number(params.threshold).toFixed(2)}</span>
-        </label>
-        <input
-          id={`${idPrefix}-threshold`}
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value={params.threshold}
-          data-testid="threshold"
-          onChange={(e) => set({ threshold: Number(e.target.value) })}
-        />
-        <div className="range-ends"><span>Show more (looser)</span><span>Only strong matches</span></div>
-        <p className="hint">Each nearby activity gets a score from 0 to 1. Only activities scoring at least this much count as connected.</p>
       </div>
 
       <details className="advanced" data-testid="advanced">

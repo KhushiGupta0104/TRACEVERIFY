@@ -77,13 +77,13 @@ function shortReason(rel, linked, threshold) {
     : '. These two events do not follow a known attack pattern.';
   if (rel.status !== 'accepted') {
     const [weakest] = Object.keys(COMPONENT_WORDS).sort((a, b) => rel[a] - rel[b]);
-    text += ` Its score of ${score(rel.final_score, 3)} stays below ${threshold.toFixed(2)}, held down mainly by a low`
+    text += ` Its relationship strength of ${score(rel.final_score, 3)} stays below ${threshold.toFixed(2)}, held down mainly by a low`
       + ` ${COMPONENT_WORDS[weakest]} score (${score(rel[weakest], 2)}).`;
   }
   return text;
 }
 
-function Relationship({ rel, params, eventsById, onSelectEvent }) {
+function Relationship({ rel, params, eventsById, onSelectEvent, openMaths }) {
   const [rules, setRules] = useState(null);
   useEffect(() => { loadRules().then(setRules); }, []);
   const accepted = rel.status === 'accepted';
@@ -105,8 +105,12 @@ function Relationship({ rel, params, eventsById, onSelectEvent }) {
           <span className="strength-thr" style={{ left: `${params.threshold * 100}%` }} />
         </div>
         <div className="verdict-sub" data-testid="strength">
-          Correlation score {strengthText(rel, params.threshold)} ({params.threshold.toFixed(2)})
+          Relationship strength {strengthText(rel, params.threshold)} ({params.threshold.toFixed(2)}, a fixed system setting)
         </div>
+        <p className="subtle small" data-testid="not-probability">
+          Relationship strength (0–1) measures how well the clues fit together. It is not a probability:
+          {' '}{score(rel.final_score, 2)} does not mean “{Math.round(rel.final_score * 100)}% likely”.
+        </p>
       </div>
 
       <div className="qa">
@@ -151,8 +155,8 @@ function Relationship({ rel, params, eventsById, onSelectEvent }) {
         <p className="reason" data-testid="short-reason">{shortReason(rel, linkedLabel, params.threshold)}</p>
       </div>
 
-      <details className="disclosure" data-testid="score-details">
-        <summary>Show the maths (score breakdown)</summary>
+      <details className="disclosure" data-testid="score-details" open={openMaths}>
+        <summary>How this relationship strength was calculated</summary>
         <div className="disclosure-body">
           <div className="scores" data-testid="score-breakdown">
             {COMPONENTS.map(([label, key, wkey, color]) => (
@@ -165,13 +169,13 @@ function Relationship({ rel, params, eventsById, onSelectEvent }) {
                 </span>
               </div>
             ))}
-            <span className="final">Final</span>
+            <span className="final">Strength</span>
             <span className="final" />
             <span className="num final">{score(rel.final_score, 3)}</span>
-            <span className="contrib final" title="threshold">≥ {params.threshold.toFixed(2)}</span>
+            <span className="contrib final" title="inclusion threshold (fixed system setting)">{accepted ? '≥' : '<'} {params.threshold.toFixed(2)}</span>
           </div>
           <p className="subtle small">
-            Final = {params.weights.entity.toFixed(2)} × entities + {params.weights.temporal.toFixed(2)} × time + {params.weights.rule.toFixed(2)} × rule
+            Relationship strength = {params.weights.entity.toFixed(2)} × entities + {params.weights.temporal.toFixed(2)} × time + {params.weights.rule.toFixed(2)} × rule
           </p>
           {rule && (
             <p className="small" data-testid="rule-condition">
@@ -271,7 +275,10 @@ export default function EvidenceDetails({ selection, timeline, relationships, pa
         </p>
       )}
 
-      {rel && <Relationship rel={rel} params={params} eventsById={eventsById} onSelectEvent={onSelectEvent} />}
+      {rel && (
+        <Relationship key={`${selection.kind}-${rel.id}`} rel={rel} params={params} eventsById={eventsById}
+          onSelectEvent={onSelectEvent} openMaths={selection.kind === 'relationship'} />
+      )}
       {supporting.length > 0 && (
         <p className="muted small">
           Also linked from{' '}

@@ -11,9 +11,9 @@ const SOURCES = [
 
 const TERMS = [
   ['Link', 'The system thinks two events belong together because they share a user or computer, happen close in time, and match a known attack pattern.'],
-  ['Score (0 to 1)', 'How strongly an event is linked. 0 means unrelated, 1 means very clearly related.'],
-  ['Strong / Likely / Weak', 'Score in words. Strong is well above the strictness level, Likely is just above it, Weak is below it.'],
-  ['Strictness (threshold)', 'The minimum score an event needs to count as evidence. Lower shows more events, higher shows only the strongest.'],
+  ['Relationship strength (0 to 1)', 'How well the clues (shared user or computer, closeness in time, known pattern) fit together. 0 means unrelated, 1 means a very clear fit. It is not a probability.'],
+  ['Strong / Likely / Weak', 'Relationship strength in words. Strong is well above the inclusion threshold, Likely is just above it, Weak is below it.'],
+  ['Inclusion threshold', 'The minimum relationship strength a link needs to count as evidence. It is a fixed system setting and the same for every investigation.'],
   ['Left out / weak matches', 'Checked, but linked too weakly to count. Turn on “Show weak matches” to see these events.'],
   ['Searched (time window)', 'How far before and after the starting event the system searches.'],
   ['Direct / 2 steps away', 'How many steps away an event is from the starting event in the chain.'],
